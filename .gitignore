@@ -1,0 +1,4 @@
+node_modules/
+.env
+hafa_mobile/build/
+hafa_mobile/.dart_tool/
