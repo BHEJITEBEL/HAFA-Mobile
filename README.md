@@ -91,27 +91,7 @@ Untuk telefon fizikal:
 
 ---
 
-## 5. Apa yang berubah berbanding versi web
-
-| Versi web (React) | Versi mobile (Flutter) |
-|---|---|
-| `AppContext.js` | `state/app_state.dart` (Provider) |
-| `lib/api.js` (axios) | `services/api_service.dart` (http) |
-| `react-router` | `router.dart` (go_router) + `main_shell.dart` (navigasi bawah) |
-| Imbas QR **disimulasi** (produk rawak) | **Kamera sebenar** — `qr_scan_screen.dart` (mobile_scanner) |
-| NFC **disimulasi** | **NFC sebenar** — baca & **tulis** tag NDEF (`nfc_service.dart`) |
-| `window.print()` | Sijil & laporan **PDF** (`pdf_service.dart`) |
-| QR dalam passport (URL web) | QR `hafa://verify/<ID>` (`qr_flutter`) |
-| Leaflet | OpenStreetMap (`flutter_map`) |
-| Recharts | `fl_chart` |
-| Daftar produk (hanya dalam memori) | **Disimpan di MongoDB** + muat naik gambar dari kamera/galeri |
-| localStorage | `shared_preferences` + cache produk (boleh guna **offline**) |
-
-**Endpoint backend baharu** (`hafa-backend`): `POST /api/products`, `POST /api/uploads`, `POST /api/products/:id/scan`, `GET /health`. Kunci pengesahan menerima `HP001` **atau** `verificationId`.
-
----
-
-## 6. Cara menguji ciri utama
+## 5. Cara menguji ciri utama
 
 - **Tanpa kamera/NFC**: tab **Verify** ▸ *Manual Lookup* — taip `HAFA-2024-TRG-001`, atau tekan chip contoh.
 - **Imbas QR (emulator)**: buka **Heritage Passport** produk dalam telefon/PC, atau jana QR dengan teks `hafa://verify/HAFA-2024-TRG-001`, kemudian tunjuk pada kamera. Emulator: *Extended controls ▸ Camera* → pilih *Webcam* atau *Virtual scene*. Telefon sebenar paling mudah.
@@ -121,7 +101,7 @@ Untuk telefon fizikal:
 
 ---
 
-## 7. Bina APK
+## 6. Bina APK
 
 **Android Studio**: *Build ▸ Flutter ▸ Build APK*, atau terminal:
 
@@ -138,7 +118,7 @@ docker run --rm -v "${PWD}:/app" -w /app ghcr.io/cirruslabs/flutter:stable bash 
 
 ---
 
-## 8. Penyelesaian masalah
+## 7. Penyelesaian masalah
 
 | Masalah | Penyelesaian |
 |---|---|
@@ -152,7 +132,7 @@ docker run --rm -v "${PWD}:/app" -w /app ghcr.io/cirruslabs/flutter:stable bash 
 
 ---
 
-## 9. Had & perkara yang perlu anda tahu
+## 8. Had & perkara yang perlu anda tahu
 
 1. **Log masuk/daftar masih simulasi** (seperti versi web asal) — tiada akaun di server. Endpoint tulis (`POST`) **belum dilindungi** autentikasi. Untuk produksi: tambah JWT + peranan.
 2. **Blockchain & IPFS masih data simulasi** (hash/CID dijana secara rawak oleh server), sama seperti data contoh asal.
