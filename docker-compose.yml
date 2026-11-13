@@ -1,0 +1,39 @@
+# Jalankan:  docker compose up -d --build
+# Henti   :  docker compose down        (data kekal dalam volume)
+# Reset   :  docker compose down -v     (padam data + gambar yang dimuat naik)
+services:
+  mongo:
+    image: mongo:7
+    container_name: hafa-mongo
+    restart: unless-stopped
+    volumes:
+      - hafa_mongo_data:/data/db
+    ports:
+      - "127.0.0.1:27017:27017"   # hanya boleh diakses dari PC anda (cth. MongoDB Compass)
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+
+  api:
+    build: ./hafa-backend
+    container_name: hafa-api
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      PORT: "8001"
+      MONGO_URI: mongodb://mongo:27017/hafa
+      AUTO_SEED: "true"            # isi 4 produk contoh jika database kosong
+      UPLOAD_DIR: /app/uploads
+    ports:
+      - "8001:8001"                # 0.0.0.0 -> telefon fizikal dalam WiFi yang sama boleh akses
+    volumes:
+      - hafa_uploads:/app/uploads
+
+volumes:
+  hafa_mongo_data:
+  hafa_uploads:
