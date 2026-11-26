@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import authRoutes from './routes/auth.js';
 import productRoutes from './routes/products.js';
 import uploadRoutes, { UPLOAD_DIR } from './routes/uploads.js';
 
@@ -20,6 +21,7 @@ app.use(express.json({ limit: '1mb' }));
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 app.use('/uploads', express.static(UPLOAD_DIR, { maxAge: '7d' }));
+app.use('/api/auth', authRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/products', productRoutes);
 

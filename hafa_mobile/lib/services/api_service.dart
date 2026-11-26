@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
 import '../core/config.dart';
+import '../models/app_user.dart';
 import '../models/product.dart';
 
 class ApiException implements Exception {
@@ -14,6 +15,7 @@ class ApiException implements Exception {
   final int? statusCode;
 
   bool get isNotFound => statusCode == 404;
+  bool get isUnauthorized => statusCode == 401;
 
   @override
   String toString() => message;
@@ -27,6 +29,17 @@ class ApiService {
   String get serverUrl => _serverUrl;
 
   void setServerUrl(String url) => _serverUrl = normalize(url);
+
+  /// Token log masuk (JWT) daripada server. null = belum log masuk / tetamu.
+  String? token;
+
+  /// Dipanggil apabila server menolak token yang dihantar (sesi tamat tempoh).
+  void Function()? onUnauthorized;
+
+  Map<String, String> _headers([String? contentType = 'application/json']) => {
+        if (contentType != null) 'Content-Type': contentType,
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
 
   /// "192.168.1.10:8001/" -> "http://192.168.1.10:8001"
   static String normalize(String url) {
@@ -71,6 +84,8 @@ class ApiService {
       body = null;
     }
     if (res.statusCode >= 200 && res.statusCode < 300) return body;
+    final sentToken = res.request?.headers['Authorization'] != null;
+    if (res.statusCode == 401 && sentToken) onUnauthorized?.call();
     final msg = body is Map && body['error'] != null ? body['error'].toString() : 'Server error (${res.statusCode})';
     throw ApiException(msg, statusCode: res.statusCode);
   }
@@ -99,10 +114,55 @@ class ApiService {
     return Product.fromJson(Map<String, dynamic>.from(data));
   }
 
+  // ---------- Akaun ----------
+
+  ({String token, AppUser user}) _session(dynamic data) {
+    if (data is! Map || data['token'] is! String || data['user'] is! Map) {
+      throw ApiException('Unexpected response from server');
+    }
+    return (
+      token: data['token'] as String,
+      user: AppUser.fromJson(Map<String, dynamic>.from(data['user'] as Map)),
+    );
+  }
+
+  Future<({String token, AppUser user})> register({
+    required String name,
+    required String email,
+    required String password,
+    required UserRole role,
+  }) async {
+    final res = await _send(() => http.post(
+          _uri('/auth/register'),
+          headers: _headers(),
+          body: jsonEncode({'name': name, 'email': email, 'password': password, 'role': role.value}),
+        ));
+    return _session(_decode(res));
+  }
+
+  Future<({String token, AppUser user})> login(String email, String password) async {
+    final res = await _send(() => http.post(
+          _uri('/auth/login'),
+          headers: _headers(),
+          body: jsonEncode({'email': email, 'password': password}),
+        ));
+    return _session(_decode(res));
+  }
+
+  /// Pengguna semasa berdasarkan [token]. 401 = token tamat tempoh / tidak sah.
+  Future<AppUser> me() async {
+    final res = await _send(() => http.get(_uri('/auth/me'), headers: _headers(null)));
+    final data = _decode(res);
+    if (data is! Map || data['user'] is! Map) throw ApiException('Unexpected response from server');
+    return AppUser.fromJson(Map<String, dynamic>.from(data['user'] as Map));
+  }
+
+  // ---------- Produk (perlu log masuk sebagai artisan / administrator) ----------
+
   Future<Product> createProduct(Map<String, dynamic> body) async {
     final res = await _send(() => http.post(
           _uri('/products'),
-          headers: {'Content-Type': 'application/json'},
+          headers: _headers(),
           body: jsonEncode(body),
         ));
     final data = _decode(res);
@@ -114,7 +174,7 @@ class ApiService {
   Future<String> uploadImage(Uint8List bytes, String contentType) async {
     final res = await _send(() => http.post(
           _uri('/uploads'),
-          headers: {'Content-Type': contentType},
+          headers: _headers(contentType),
           body: bytes,
         ));
     final data = _decode(res);

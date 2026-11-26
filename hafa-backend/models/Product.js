@@ -25,6 +25,8 @@ const productSchema = new mongoose.Schema(
     qrCode: String,
     touristScans: { type: Number, default: 0 },
     verificationRequests: { type: Number, default: 0 },
+    // Pengguna yang mendaftar produk ini (tiada untuk data contoh)
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
   },
   { timestamps: true }
 );
