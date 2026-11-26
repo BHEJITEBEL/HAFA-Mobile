@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { requireAuth, requireRole } from '../middleware/auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(__dirname, '..', 'uploads');
@@ -23,7 +24,8 @@ const looksLikeImage = (buf, type) => {
 };
 
 // POST /api/uploads  (badan = bait imej mentah, Content-Type = image/jpeg|png|webp)
-router.post('/', express.raw({ type: TYPES, limit: '8mb' }), async (req, res, next) => {
+// Hanya artisan & administrator yang log masuk boleh memuat naik gambar
+router.post('/', requireAuth, requireRole('artisan', 'administrator'), express.raw({ type: TYPES, limit: '8mb' }), async (req, res, next) => {
   try {
     const type = req.is(TYPES);
     if (!type || !Buffer.isBuffer(req.body) || req.body.length === 0) {

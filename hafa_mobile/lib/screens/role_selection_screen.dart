@@ -41,15 +41,12 @@ class RoleSelectionScreen extends StatelessWidget {
     ];
 
     Future<void> select(UserRole role) async {
-      await app.setRole(role);
-      if (isGuest && !app.isAuthenticated) {
-        await app.login(AppUser(
-          name: 'Guest User',
-          email: 'guest@hafa.my',
-          joinedDate: formatDate(DateTime.now()),
-          isGuest: true,
-        ));
+      // Akaun sebenar: peranan ditetapkan oleh server. Skrin ini untuk mod tetamu / demo.
+      if (app.hasAccount) {
+        if (context.mounted) context.go('/home');
+        return;
       }
+      await app.continueAsGuest(role);
       if (context.mounted) context.go('/home');
     }
 

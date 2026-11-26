@@ -6,6 +6,11 @@ import { heritageProducts } from './seed/mockData.js';
 
 const PORT = process.env.PORT || 8001;
 
+if (!process.env.JWT_SECRET) {
+  console.error('Failed to start: JWT_SECRET is not set (see .env.example)');
+  process.exit(1);
+}
+
 try {
   await mongoose.connect(process.env.MONGO_URI);
   console.log('MongoDB connected');

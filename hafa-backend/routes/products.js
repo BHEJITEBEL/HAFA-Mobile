@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import crypto from 'node:crypto';
 import Product from '../models/Product.js';
+import { requireAuth, requireRole } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -75,7 +76,8 @@ const nextNumber = async () => {
 
 // POST /api/products  -> daftar produk baharu (status: Pending Verification)
 // Nota: blockchainHash & ipfsCid dijana secara SIMULASI (sama seperti data contoh projek ini).
-router.post('/', async (req, res, next) => {
+// Hanya artisan & administrator yang log masuk boleh mendaftar produk
+router.post('/', requireAuth, requireRole('artisan', 'administrator'), async (req, res, next) => {
   try {
     const b = req.body ?? {};
     const a = b.artisan ?? {};
@@ -130,6 +132,7 @@ router.post('/', async (req, res, next) => {
           ],
           touristScans: 0,
           verificationRequests: 0,
+          createdBy: req.user._id,
         });
         return res.status(201).json(product);
       } catch (err) {

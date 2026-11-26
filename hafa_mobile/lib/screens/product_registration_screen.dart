@@ -75,7 +75,14 @@ class _ProductRegistrationScreenState extends State<ProductRegistrationScreen> {
     }
   }
 
+  static const _demoMsg = 'Demo mode cannot save products. Please register an artisan account and log in.';
+
   void _next() {
+    // Beritahu tetamu lebih awal, bukan selepas mengisi semua 6 langkah
+    if (!context.read<AppState>().hasAccount) {
+      showMsg(context, _demoMsg);
+      return;
+    }
     final err = _validate(_step);
     if (err != null) {
       showMsg(context, err);
@@ -116,8 +123,12 @@ class _ProductRegistrationScreenState extends State<ProductRegistrationScreen> {
   }
 
   Future<void> _submit() async {
-    setState(() => _submitting = true);
     final app = context.read<AppState>();
+    if (!app.hasAccount) {
+      showMsg(context, _demoMsg);
+      return;
+    }
+    setState(() => _submitting = true);
     try {
       final paths = <String>[];
       for (final img in _images) {
