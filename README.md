@@ -48,7 +48,29 @@ curl.exe http://localhost:8001/api/products
 | `docker compose down` | Henti (data kekal) |
 | `docker compose down -v` | Henti + **padam** data & gambar yang dimuat naik |
 
-> MongoDB tempatan dalam Docker menggantikan MongoDB Atlas. Anda **tidak perlu** `.env` untuk Docker.
+**Fail `.env`** (sebelah `docker-compose.yml`, tidak di-commit) diperlukan:
+
+```
+JWT_SECRET=<rentetan rawak panjang>
+# Pilihan: guna MongoDB Atlas. Jika tiada, MongoDB tempatan dalam Docker digunakan.
+MONGO_URI=mongodb+srv://USER:PASSWORD@cluster0.xxxx.mongodb.net/hafa?retryWrites=true&w=majority
+```
+
+---
+
+## 2b. Hoskan dalam talian (Atlas + Render) — log masuk dari mana-mana peranti
+
+1. **MongoDB Atlas**: *Network Access* → `0.0.0.0/0` (Render tiada IP tetap). Salin `MONGO_URI` (dengan `/hafa` sebelum `?`).
+2. **Push** repo ke GitHub.
+3. **Render** (render.com, log masuk dengan GitHub) → **New ▸ Blueprint** → pilih repo ini. Render membaca `render.yaml`.
+4. Masukkan nilai **MONGO_URI** apabila diminta → **Apply**. `JWT_SECRET` dijana automatik.
+5. Selepas deploy, semak `https://<nama-servis>.onrender.com/api/health` → `{"ok":true}`.
+6. Dalam aplikasi: **Profile ▸ Server Settings** → `https://<nama-servis>.onrender.com`, atau bina APK:
+   ```powershell
+   flutter build apk --release --dart-define=API_BASE_URL=https://<nama-servis>.onrender.com
+   ```
+
+> Pelan percuma Render: server "tidur" selepas 15 minit tanpa trafik (permintaan pertama ~30–50 s), dan **gambar yang dimuat naik hilang** apabila server dimulakan semula (cakera sementara).
 
 ---
 
@@ -134,7 +156,7 @@ docker run --rm -v "${PWD}:/app" -w /app ghcr.io/cirruslabs/flutter:stable bash 
 
 ## 8. Had & perkara yang perlu anda tahu
 
-1. **Log masuk/daftar masih simulasi** (seperti versi web asal) — tiada akaun di server. Endpoint tulis (`POST`) **belum dilindungi** autentikasi. Untuk produksi: tambah JWT + peranan.
+1. **Log masuk/daftar** menggunakan akaun di server (`/api/auth`, bcrypt + JWT). *Quick Demo Login* kekal sebagai mod luar talian. Endpoint produk (`POST`) **belum dilindungi** autentikasi.
 2. **Blockchain & IPFS masih data simulasi** (hash/CID dijana secara rawak oleh server), sama seperti data contoh asal.
 3. Halaman **Admin Analytics** & **Cybersecurity** menggunakan angka contoh statik (seperti asal; di web asal carta kategori berubah rawak setiap render — kini tetap).
 4. Butang **Review** admin hanya memaparkan butiran; kelulusan sebenar memerlukan API admin berautentikasi.

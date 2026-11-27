@@ -6,7 +6,16 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
 import '../core/config.dart';
+import '../models/app_user.dart';
 import '../models/product.dart';
+
+/// Hasil log masuk / daftar: token JWT + pengguna.
+class AuthResult {
+  const AuthResult(this.token, this.user, this.role);
+  final String token;
+  final AppUser user;
+  final UserRole role;
+}
 
 class ApiException implements Exception {
   ApiException(this.message, {this.statusCode});
@@ -14,6 +23,7 @@ class ApiException implements Exception {
   final int? statusCode;
 
   bool get isNotFound => statusCode == 404;
+  bool get isUnauthorized => statusCode == 401;
 
   @override
   String toString() => message;
@@ -73,6 +83,47 @@ class ApiService {
     if (res.statusCode >= 200 && res.statusCode < 300) return body;
     final msg = body is Map && body['error'] != null ? body['error'].toString() : 'Server error (${res.statusCode})';
     throw ApiException(msg, statusCode: res.statusCode);
+  }
+
+  static const _json = {'Content-Type': 'application/json'};
+
+  AuthResult _authResult(dynamic data) {
+    if (data is! Map || data['token'] is! String || data['user'] is! Map) {
+      throw ApiException('Unexpected response from server');
+    }
+    final u = Map<String, dynamic>.from(data['user'] as Map);
+    return AuthResult(data['token'] as String, AppUser.fromJson(u), parseRole(u['role']?.toString()));
+  }
+
+  Future<AuthResult> login(String email, String password) async {
+    final res = await _send(() => http.post(
+          _uri('/auth/login'),
+          headers: _json,
+          body: jsonEncode({'email': email, 'password': password}),
+        ));
+    return _authResult(_decode(res));
+  }
+
+  Future<AuthResult> register({
+    required String name,
+    required String email,
+    required String password,
+    required UserRole role,
+  }) async {
+    final res = await _send(() => http.post(
+          _uri('/auth/register'),
+          headers: _json,
+          body: jsonEncode({'name': name, 'email': email, 'password': password, 'role': role.value}),
+        ));
+    return _authResult(_decode(res));
+  }
+
+  /// Semak token masih sah. Melempar [ApiException] (401) jika tamat tempoh.
+  Future<AppUser> me(String token) async {
+    final res = await _send(() => http.get(_uri('/auth/me'), headers: {'Authorization': 'Bearer $token'}));
+    final data = _decode(res);
+    if (data is! Map || data['user'] is! Map) throw ApiException('Unexpected response from server');
+    return AppUser.fromJson(Map<String, dynamic>.from(data['user'] as Map));
   }
 
   Future<bool> ping() async {

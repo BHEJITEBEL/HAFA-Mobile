@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../core/theme.dart';
 import '../core/utils.dart';
 import '../models/app_user.dart';
+import '../services/api_service.dart' show ApiException;
 import '../state/app_state.dart';
 import '../widgets/common.dart';
 import '../widgets/patterns.dart';
@@ -45,19 +46,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
     setState(() => _loading = true);
-    // Pendaftaran simulasi (prototaip FYP) — tiada akaun disimpan di server.
-    await Future.delayed(const Duration(milliseconds: 800));
-    if (!mounted) return;
-    final app = context.read<AppState>();
-    await app.login(AppUser(
-      name: _name.text.trim().isEmpty ? 'New User' : _name.text.trim(),
-      email: _email.text.trim(),
-      joinedDate: formatDate(DateTime.now()),
-    ));
-    await app.setRole(_role);
-    if (!mounted) return;
-    setState(() => _loading = false);
-    context.go('/home');
+    // Akaun disimpan di server (MongoDB) supaya boleh log masuk dari peranti lain.
+    try {
+      await context.read<AppState>().signUp(
+            name: _name.text.trim(),
+            email: _email.text.trim(),
+            password: _password.text,
+            role: _role,
+          );
+      if (!mounted) return;
+      context.go('/home');
+    } on ApiException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   String? _required(String? v, String what) => (v == null || v.trim().isEmpty) ? '$what is required' : null;

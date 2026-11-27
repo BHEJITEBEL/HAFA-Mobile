@@ -13,6 +13,7 @@ const _kUser = 'hafa-user';
 const _kRole = 'hafa-role';
 const _kServer = 'hafa-server-url';
 const _kCache = 'hafa-products-cache';
+const _kToken = 'hafa-auth-token';
 
 /// Ganti AppContext.js (React). Menyimpan pengguna, peranan dan senarai produk.
 class AppState extends ChangeNotifier {
@@ -47,6 +48,24 @@ class AppState extends ChangeNotifier {
     }
     role = parseRole(_prefs.getString(_kRole));
     unawaited(loadProducts());
+    unawaited(_checkSession());
+  }
+
+  /// Token JWT akaun server (null untuk demo/tetamu).
+  String? get token => _prefs.getString(_kToken);
+
+  /// Jika token sudah tamat atau akaun dipadam, log keluar. Ralat rangkaian diabaikan (kekal log masuk luar talian).
+  Future<void> _checkSession() async {
+    final t = token;
+    if (t == null || user == null) return;
+    try {
+      final fresh = await api.me(t);
+      user = fresh;
+      await _prefs.setString(_kUser, jsonEncode(fresh.toJson()));
+      notifyListeners();
+    } on ApiException catch (e) {
+      if (e.isUnauthorized) await logout();
+    } catch (_) {}
   }
 
   // ---------- Produk ----------
@@ -130,16 +149,40 @@ class AppState extends ChangeNotifier {
 
   // ---------- Sesi ----------
 
+  /// Log masuk tempatan sahaja (demo / tetamu) — tiada akaun server.
   Future<void> login(AppUser u) async {
     user = u;
+    await _prefs.remove(_kToken);
     await _prefs.setString(_kUser, jsonEncode(u.toJson()));
     notifyListeners();
   }
+
+  Future<void> _startSession(AuthResult r) async {
+    user = r.user;
+    role = r.role;
+    await _prefs.setString(_kToken, r.token);
+    await _prefs.setString(_kUser, jsonEncode(r.user.toJson()));
+    await _prefs.setString(_kRole, r.role.value);
+    notifyListeners();
+  }
+
+  /// Log masuk dengan akaun di server. Melempar [ApiException] jika gagal.
+  Future<void> signIn(String email, String password) async => _startSession(await api.login(email, password));
+
+  /// Daftar akaun baharu di server. Melempar [ApiException] jika gagal (cth. emel sudah wujud).
+  Future<void> signUp({
+    required String name,
+    required String email,
+    required String password,
+    required UserRole role,
+  }) async =>
+      _startSession(await api.register(name: name, email: email, password: password, role: role));
 
   Future<void> logout() async {
     user = null;
     role = UserRole.consumer;
     await _prefs.remove(_kUser);
+    await _prefs.remove(_kToken);
     await _prefs.setString(_kRole, role.value);
     notifyListeners();
   }

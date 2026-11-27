@@ -3,8 +3,12 @@ import cors from 'cors';
 import helmet from 'helmet';
 import productRoutes from './routes/products.js';
 import uploadRoutes, { UPLOAD_DIR } from './routes/uploads.js';
+import authRoutes from './routes/auth.js';
 
 const app = express();
+
+// Di sebalik proksi hosting (Render, Railway...) supaya req.ip ialah IP sebenar klien
+if (process.env.TRUST_PROXY) app.set('trust proxy', Number(process.env.TRUST_PROXY) || 1);
 
 // Gambar di /uploads mesti boleh dimuatkan oleh klien lain (web/mobile)
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
@@ -22,6 +26,7 @@ app.get('/api/health', (_req, res) => res.json({ ok: true }));
 app.use('/uploads', express.static(UPLOAD_DIR, { maxAge: '7d' }));
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/auth', authRoutes);
 
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found' }));
 

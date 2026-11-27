@@ -26,9 +26,11 @@ services:
         condition: service_healthy
     environment:
       PORT: "8001"
-      MONGO_URI: mongodb://mongo:27017/hafa
+      # Atlas: tetapkan MONGO_URI dalam .env. Jika kosong, guna MongoDB tempatan (container "mongo").
+      MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017/hafa}
       AUTO_SEED: "true"            # isi 4 produk contoh jika database kosong
       UPLOAD_DIR: /app/uploads
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in the .env file next to docker-compose.yml}
     ports:
       - "8001:8001"                # 0.0.0.0 -> telefon fizikal dalam WiFi yang sama boleh akses
     volumes:

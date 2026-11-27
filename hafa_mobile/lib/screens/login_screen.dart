@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../core/theme.dart';
 import '../core/utils.dart';
 import '../models/app_user.dart';
+import '../services/api_service.dart' show ApiException;
 import '../state/app_state.dart';
 import '../widgets/common.dart';
 import '../widgets/patterns.dart';
@@ -48,6 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _password = TextEditingController();
   bool _show = false;
   bool _loading = false;
+  String _error = '';
 
   @override
   void dispose() {
@@ -56,22 +58,37 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> _signIn({required bool demo}) async {
-    setState(() => _loading = true);
-    // Log masuk ini simulasi (prototaip FYP) — tiada pengesahan di server.
-    await Future.delayed(Duration(milliseconds: demo ? 500 : 800));
-    final email = demo ? '' : _email.text.trim();
-    final derived = email.contains('@') ? email.split('@').first.replaceAll(RegExp(r'[._]'), ' ') : '';
-    final name = demo ? 'Demo User' : (derived.isEmpty ? 'Demo User' : derived);
-    final user = AppUser(
-      name: name,
-      email: email.isEmpty ? 'demo@hafa.my' : email,
-      joinedDate: formatDate(DateTime.now()),
-    );
+  /// Log masuk sebenar: emel + kata laluan disemak oleh server (MongoDB).
+  Future<void> _signIn() async {
+    final email = _email.text.trim();
+    final password = _password.text;
+    if (email.isEmpty || password.isEmpty) {
+      setState(() => _error = 'Enter your email and password');
+      return;
+    }
+    setState(() {
+      _loading = true;
+      _error = '';
+    });
+    try {
+      await context.read<AppState>().signIn(email, password);
+      if (!mounted) return;
+      context.go('/role-selection');
+    } on ApiException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  /// Demo luar talian (tiada akaun server) — untuk persembahan sahaja.
+  Future<void> _demo() async {
+    await context.read<AppState>().login(AppUser(
+          name: 'Demo User',
+          email: 'demo@hafa.my',
+          joinedDate: formatDate(DateTime.now()),
+        ));
     if (!mounted) return;
-    await context.read<AppState>().login(user);
-    if (!mounted) return;
-    setState(() => _loading = false);
     context.go('/role-selection');
   }
 
@@ -141,10 +158,15 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: const Text('Forgot Password?', style: TextStyle(color: HC.gold)),
                         ),
                       ),
+                      if (_error.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Text(_error, style: const TextStyle(color: Color(0xFFFCA5A5), fontSize: 13)),
+                        ),
                       const SizedBox(height: 4),
-                      AppButton(label: 'Login', style: BtnStyle.gold, loading: _loading, onPressed: () => _signIn(demo: false)),
+                      AppButton(label: 'Login', style: BtnStyle.gold, loading: _loading, onPressed: _signIn),
                       const SizedBox(height: 12),
-                      AppButton(label: 'Quick Demo Login', style: BtnStyle.ghostLight, onPressed: _loading ? null : () => _signIn(demo: true)),
+                      AppButton(label: 'Quick Demo Login', style: BtnStyle.ghostLight, onPressed: _loading ? null : _demo),
                       const SizedBox(height: 22),
                       Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                         Text("Don't have an account? ", style: TextStyle(color: HC.cream, fontSize: 14)),

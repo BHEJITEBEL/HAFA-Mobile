@@ -1,0 +1,24 @@
+# Render Blueprint — hoskan API HAFA secara percuma (https://render.com)
+# Render > New > Blueprint > pilih repo ini. Render akan minta nilai MONGO_URI.
+services:
+  - type: web
+    name: hafa-api
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: hafa-backend
+    buildCommand: npm ci --omit=dev
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: MONGO_URI          # sambungan MongoDB Atlas — dimasukkan dalam dashboard, BUKAN dalam kod
+        sync: false
+      - key: JWT_SECRET         # Render jana rentetan rawak secara automatik
+        generateValue: true
+      - key: TRUST_PROXY        # Render berada di sebalik proksi -> IP klien sebenar untuk had cubaan log masuk
+        value: "1"
+      - key: AUTO_SEED
+        value: "true"
