@@ -153,7 +153,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Padding(
           padding: const EdgeInsets.all(16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Switch Role', style: heading(19)),
+            // Tukar peranan hanya dalam mod demo; akaun server menggunakan peranan dari server
+            if (app.isDemo) ...[
+            Text('Switch Role (Demo)', style: heading(19)),
             const SizedBox(height: 10),
             for (final r in roles)
               Padding(
@@ -183,6 +185,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             const SizedBox(height: 14),
+            ],
             Text('Shortcuts', style: heading(19)),
             const SizedBox(height: 10),
             AppCard(

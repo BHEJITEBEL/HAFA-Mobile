@@ -109,7 +109,11 @@ class WelcomeScreen extends StatelessWidget {
                   AppButton(label: 'Register', style: BtnStyle.ghostLight, onPressed: () => context.push('/register')),
                   const SizedBox(height: 6),
                   TextButton(
-                    onPressed: () => context.push('/role-selection?guest=true'),
+                    // Tetamu terus masuk sebagai Consumer (tiada pilihan peranan)
+                    onPressed: () async {
+                      await context.read<AppState>().continueAsGuest();
+                      if (context.mounted) context.go('/home');
+                    },
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       Text('Explore as Guest', style: TextStyle(color: HC.cream, fontSize: 15)),
                       const SizedBox(width: 6),

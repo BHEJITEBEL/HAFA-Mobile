@@ -8,9 +8,9 @@ import '../models/app_user.dart';
 import '../state/app_state.dart';
 import '../widgets/patterns.dart';
 
+/// Hanya untuk "Quick Demo Login" (luar talian). Akaun server menggunakan peranan dari server.
 class RoleSelectionScreen extends StatelessWidget {
-  const RoleSelectionScreen({super.key, this.isGuest = false});
-  final bool isGuest;
+  const RoleSelectionScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -42,14 +42,6 @@ class RoleSelectionScreen extends StatelessWidget {
 
     Future<void> select(UserRole role) async {
       await app.setRole(role);
-      if (isGuest && !app.isAuthenticated) {
-        await app.login(AppUser(
-          name: 'Guest User',
-          email: 'guest@hafa.my',
-          joinedDate: formatDate(DateTime.now()),
-          isGuest: true,
-        ));
-      }
       if (context.mounted) context.go('/home');
     }
 
@@ -83,7 +75,7 @@ class RoleSelectionScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   Text('Choose Your Role', style: heading(30, color: Colors.white)),
                   const SizedBox(height: 6),
-                  Text('Select how you want to use HAFA', style: TextStyle(color: HC.cream, fontSize: 15)),
+                  Text('Demo mode: select a role to preview', style: TextStyle(color: HC.cream, fontSize: 15)),
                   const SizedBox(height: 4),
                   Text('You can change this later in your profile', style: TextStyle(color: HC.cream.o(0.6), fontSize: 12)),
                   const SizedBox(height: 24),

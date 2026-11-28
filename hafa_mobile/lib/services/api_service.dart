@@ -119,12 +119,14 @@ class ApiService {
     return _authResult(_decode(res));
   }
 
-  /// Semak token masih sah. Melempar [ApiException] (401) jika tamat tempoh.
-  Future<AppUser> me(String token) async {
+  /// Semak token masih sah; pulangkan pengguna + peranan terkini dari server.
+  /// Melempar [ApiException] (401) jika tamat tempoh.
+  Future<(AppUser, UserRole)> me(String token) async {
     final res = await _send(() => http.get(_uri('/auth/me'), headers: {'Authorization': 'Bearer $token'}));
     final data = _decode(res);
     if (data is! Map || data['user'] is! Map) throw ApiException('Unexpected response from server');
-    return AppUser.fromJson(Map<String, dynamic>.from(data['user'] as Map));
+    final u = Map<String, dynamic>.from(data['user'] as Map);
+    return (AppUser.fromJson(u), parseRole(u['role']?.toString()));
   }
 
   Future<bool> ping() async {

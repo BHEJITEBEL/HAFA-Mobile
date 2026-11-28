@@ -22,9 +22,12 @@ import 'screens/splash_screen.dart';
 import 'screens/verification_result_screen.dart';
 import 'screens/verify_screen.dart';
 import 'screens/welcome_screen.dart';
+import 'models/app_user.dart';
 import 'state/app_state.dart';
 
-const _publicRoutes = {'/', '/splash', '/welcome', '/login', '/register', '/role-selection'};
+const _publicRoutes = {'/', '/splash', '/welcome', '/login', '/register'};
+const _adminRoutes = {'/admin-dashboard', '/cybersecurity'};
+const _artisanRoutes = {'/artisan-dashboard', '/register-product'};
 
 GoRouter buildRouter(AppState app) {
   return GoRouter(
@@ -35,6 +38,11 @@ GoRouter buildRouter(AppState app) {
       if (_publicRoutes.contains(path)) return null;
       // Halaman utama memerlukan log masuk (atau mod tetamu)
       if (!app.isAuthenticated) return '/welcome';
+      // Pilihan peranan hanya untuk mod demo; akaun server & tetamu terus ke Home
+      if (path == '/role-selection' && !app.isDemo) return '/home';
+      // Halaman ikut peranan (peranan akaun server datang dari server)
+      if (_adminRoutes.contains(path) && app.role != UserRole.administrator) return '/home';
+      if (_artisanRoutes.contains(path) && app.role == UserRole.consumer) return '/home';
       return null;
     },
     routes: [
@@ -47,7 +55,7 @@ GoRouter buildRouter(AppState app) {
       GoRoute(path: '/register', builder: (_, __) => const RegisterScreen()),
       GoRoute(
         path: '/role-selection',
-        builder: (_, state) => RoleSelectionScreen(isGuest: state.uri.queryParameters['guest'] == 'true'),
+        builder: (_, __) => const RoleSelectionScreen(),
       ),
 
       // Kamera penuh skrin (menyelubungi navigasi bawah). Memulangkan teks QR melalui pop().

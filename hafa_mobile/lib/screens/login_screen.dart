@@ -73,7 +73,8 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await context.read<AppState>().signIn(email, password);
       if (!mounted) return;
-      context.go('/role-selection');
+      // Peranan datang daripada akaun di server — tiada pilihan peranan selepas log masuk
+      context.go('/home');
     } on ApiException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } finally {

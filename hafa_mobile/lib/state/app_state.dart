@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/config.dart';
+import '../core/utils.dart';
 import '../models/app_user.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
@@ -54,14 +55,34 @@ class AppState extends ChangeNotifier {
   /// Token JWT akaun server (null untuk demo/tetamu).
   String? get token => _prefs.getString(_kToken);
 
+  /// Log masuk dengan akaun server — peranan ditetapkan oleh server, tidak boleh ditukar dalam aplikasi.
+  bool get isServerAccount => user != null && token != null;
+
+  /// "Quick Demo Login" luar talian — satu-satunya mod yang boleh memilih/menukar peranan.
+  bool get isDemo => user != null && token == null && !user!.isGuest;
+
+  /// Tetamu sentiasa sebagai Consumer.
+  Future<void> continueAsGuest() async {
+    role = UserRole.consumer;
+    await _prefs.setString(_kRole, role.value);
+    await login(AppUser(
+      name: 'Guest User',
+      email: 'guest@hafa.my',
+      joinedDate: formatDate(DateTime.now()),
+      isGuest: true,
+    ));
+  }
+
   /// Jika token sudah tamat atau akaun dipadam, log keluar. Ralat rangkaian diabaikan (kekal log masuk luar talian).
   Future<void> _checkSession() async {
     final t = token;
     if (t == null || user == null) return;
     try {
-      final fresh = await api.me(t);
+      final (fresh, freshRole) = await api.me(t);
       user = fresh;
+      role = freshRole; // peranan sentiasa ikut server (cth. selepas dinaikkan menjadi admin)
       await _prefs.setString(_kUser, jsonEncode(fresh.toJson()));
+      await _prefs.setString(_kRole, freshRole.value);
       notifyListeners();
     } on ApiException catch (e) {
       if (e.isUnauthorized) await logout();
