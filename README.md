@@ -156,7 +156,7 @@ docker run --rm -v "${PWD}:/app" -w /app ghcr.io/cirruslabs/flutter:stable bash 
 
 ## 8. Had & perkara yang perlu anda tahu
 
-1. **Log masuk/daftar** menggunakan akaun di server (`/api/auth`, bcrypt + JWT). *Quick Demo Login* kekal sebagai mod luar talian. Endpoint produk (`POST`) **belum dilindungi** autentikasi.
+1. **Log masuk/daftar** menggunakan akaun di server (`/api/auth`, bcrypt + JWT). Peranan ditetapkan oleh server (tiada *Quick Demo Login* atau pilihan peranan); jadikan akaun admin dengan `docker compose exec api node seed/set-role.js <emel> administrator`. Endpoint produk (`POST`) **belum dilindungi** autentikasi.
 2. **Blockchain & IPFS masih data simulasi** (hash/CID dijana secara rawak oleh server), sama seperti data contoh asal.
 3. Halaman **Admin Analytics** & **Cybersecurity** menggunakan angka contoh statik (seperti asal; di web asal carta kategori berubah rawak setiap render — kini tetap).
 4. Butang **Review** admin hanya memaparkan butiran; kelulusan sebenar memerlukan API admin berautentikasi.

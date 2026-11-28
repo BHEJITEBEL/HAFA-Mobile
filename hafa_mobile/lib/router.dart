@@ -17,7 +17,6 @@ import 'screens/product_registration_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/qr_scan_screen.dart';
 import 'screens/register_screen.dart';
-import 'screens/role_selection_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/verification_result_screen.dart';
 import 'screens/verify_screen.dart';
@@ -38,8 +37,6 @@ GoRouter buildRouter(AppState app) {
       if (_publicRoutes.contains(path)) return null;
       // Halaman utama memerlukan log masuk (atau mod tetamu)
       if (!app.isAuthenticated) return '/welcome';
-      // Pilihan peranan hanya untuk mod demo; akaun server & tetamu terus ke Home
-      if (path == '/role-selection' && !app.isDemo) return '/home';
       // Halaman ikut peranan (peranan akaun server datang dari server)
       if (_adminRoutes.contains(path) && app.role != UserRole.administrator) return '/home';
       if (_artisanRoutes.contains(path) && app.role == UserRole.consumer) return '/home';
@@ -53,10 +50,6 @@ GoRouter buildRouter(AppState app) {
       GoRoute(path: '/welcome', builder: (_, __) => const WelcomeScreen()),
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, __) => const RegisterScreen()),
-      GoRoute(
-        path: '/role-selection',
-        builder: (_, __) => const RoleSelectionScreen(),
-      ),
 
       // Kamera penuh skrin (menyelubungi navigasi bawah). Memulangkan teks QR melalui pop().
       GoRoute(path: '/scan', builder: (_, __) => const QrScanScreen()),

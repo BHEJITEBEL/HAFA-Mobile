@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 
 import '../core/theme.dart';
 import '../core/utils.dart';
-import '../models/app_user.dart';
 import '../services/api_service.dart' show ApiException;
 import '../state/app_state.dart';
 import '../widgets/common.dart';
@@ -82,16 +81,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  /// Demo luar talian (tiada akaun server) — untuk persembahan sahaja.
-  Future<void> _demo() async {
-    await context.read<AppState>().login(AppUser(
-          name: 'Demo User',
-          email: 'demo@hafa.my',
-          joinedDate: formatDate(DateTime.now()),
-        ));
-    if (!mounted) return;
-    context.go('/role-selection');
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -166,8 +155,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       const SizedBox(height: 4),
                       AppButton(label: 'Login', style: BtnStyle.gold, loading: _loading, onPressed: _signIn),
-                      const SizedBox(height: 12),
-                      AppButton(label: 'Quick Demo Login', style: BtnStyle.ghostLight, onPressed: _loading ? null : _demo),
                       const SizedBox(height: 22),
                       Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                         Text("Don't have an account? ", style: TextStyle(color: HC.cream, fontSize: 14)),

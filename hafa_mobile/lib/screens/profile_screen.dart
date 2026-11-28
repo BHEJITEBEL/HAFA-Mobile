@@ -112,11 +112,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final user = app.user;
     final name = user?.name ?? 'Guest';
 
-    final roles = <(UserRole, IconData, String)>[
-      (UserRole.consumer, Icons.person_rounded, 'Browse and verify products'),
-      (UserRole.artisan, Icons.work_rounded, 'Register and manage crafts'),
-      (UserRole.administrator, Icons.settings_rounded, 'Analytics and security'),
-    ];
 
     return Scaffold(
       body: ListView(padding: EdgeInsets.zero, children: [
@@ -153,39 +148,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Padding(
           padding: const EdgeInsets.all(16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            // Tukar peranan hanya dalam mod demo; akaun server menggunakan peranan dari server
-            if (app.isDemo) ...[
-            Text('Switch Role (Demo)', style: heading(19)),
-            const SizedBox(height: 10),
-            for (final r in roles)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(14),
-                  onTap: () => app.setRole(r.$1),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: app.role == r.$1 ? HC.emerald : Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: app.role == r.$1 ? HC.emerald : HC.creamDark, width: 1.5),
-                    ),
-                    child: Row(children: [
-                      Icon(r.$2, color: app.role == r.$1 ? HC.gold : HC.emerald),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text(r.$1.label, style: TextStyle(fontWeight: FontWeight.w700, color: app.role == r.$1 ? Colors.white : HC.emeraldDark)),
-                          Text(r.$3, style: TextStyle(fontSize: 12, color: app.role == r.$1 ? HC.cream : Colors.grey.shade600)),
-                        ]),
-                      ),
-                      if (app.role == r.$1) const Icon(Icons.check_circle_rounded, color: HC.gold),
-                    ]),
-                  ),
-                ),
-              ),
-            const SizedBox(height: 14),
-            ],
             Text('Shortcuts', style: heading(19)),
             const SizedBox(height: 10),
             AppCard(

@@ -48,18 +48,21 @@ class AppState extends ChangeNotifier {
       }
     }
     role = parseRole(_prefs.getString(_kRole));
+    // Sesi "demo" lama (tiada token & bukan tetamu) tidak lagi disokong -> log keluar
+    if (user != null && token == null && !user!.isGuest) {
+      user = null;
+      await _prefs.remove(_kUser);
+    }
+    if (user?.isGuest ?? false) role = UserRole.consumer;
     unawaited(loadProducts());
     unawaited(_checkSession());
   }
 
-  /// Token JWT akaun server (null untuk demo/tetamu).
+  /// Token JWT akaun server (null untuk tetamu).
   String? get token => _prefs.getString(_kToken);
 
   /// Log masuk dengan akaun server — peranan ditetapkan oleh server, tidak boleh ditukar dalam aplikasi.
   bool get isServerAccount => user != null && token != null;
-
-  /// "Quick Demo Login" luar talian — satu-satunya mod yang boleh memilih/menukar peranan.
-  bool get isDemo => user != null && token == null && !user!.isGuest;
 
   /// Tetamu sentiasa sebagai Consumer.
   Future<void> continueAsGuest() async {
@@ -170,7 +173,7 @@ class AppState extends ChangeNotifier {
 
   // ---------- Sesi ----------
 
-  /// Log masuk tempatan sahaja (demo / tetamu) — tiada akaun server.
+  /// Log masuk tempatan sahaja (tetamu) — tiada akaun server.
   Future<void> login(AppUser u) async {
     user = u;
     await _prefs.remove(_kToken);
@@ -205,12 +208,6 @@ class AppState extends ChangeNotifier {
     await _prefs.remove(_kUser);
     await _prefs.remove(_kToken);
     await _prefs.setString(_kRole, role.value);
-    notifyListeners();
-  }
-
-  Future<void> setRole(UserRole r) async {
-    role = r;
-    await _prefs.setString(_kRole, r.value);
     notifyListeners();
   }
 
