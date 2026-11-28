@@ -60,12 +60,13 @@ class ApiService {
 
   Future<http.Response> _send(Future<http.Response> Function() call) async {
     try {
-      return await call().timeout(const Duration(seconds: 15));
+      // 60 s: server percuma Render "tidur" dan perlukan ~30-50 s untuk bangun
+      return await call().timeout(const Duration(seconds: 60));
     } on TimeoutException {
-      throw ApiException('The server did not respond in time ($_serverUrl). Check that Docker is running.');
+      throw ApiException('The server did not respond in time ($_serverUrl). It may be waking up — please try again.');
     } on SocketException {
       throw ApiException(
-          'Cannot reach the HAFA server at $_serverUrl. Make sure "docker compose up" is running and the Server URL is correct.');
+          'Cannot reach the HAFA server at $_serverUrl. Check your internet connection and the Server URL.');
     } on http.ClientException {
       throw ApiException('Cannot reach the HAFA server at $_serverUrl.');
     } on HandshakeException {

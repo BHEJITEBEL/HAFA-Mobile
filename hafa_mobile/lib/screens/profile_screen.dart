@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../core/config.dart';
 import '../core/theme.dart';
 import '../core/utils.dart';
 import '../models/app_user.dart';
@@ -34,7 +35,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           title: Text('Server Settings', style: heading(19)),
           content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(
-              'Android emulator: http://10.0.2.2:8001\nReal phone: http://<your-PC-IP>:8001',
+              'Online (default): ${ApiConfig.onlineServerUrl}\n'
+              'Local Docker — emulator: http://10.0.2.2:8001\n'
+              'Local Docker — real phone: http://<your-PC-IP>:8001',
               style: TextStyle(fontSize: 12.5, color: Colors.grey.shade700, height: 1.45),
             ),
             const SizedBox(height: 12),

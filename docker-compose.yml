@@ -30,6 +30,7 @@ services:
       MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017/hafa}
       AUTO_SEED: "true"            # isi 4 produk contoh jika database kosong
       UPLOAD_DIR: /app/uploads
+      TRUST_PROXY: "1"             # di sebalik Cloudflare Tunnel -> IP klien sebenar untuk had cubaan log masuk
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in the .env file next to docker-compose.yml}
     ports:
       - "8001:8001"                # 0.0.0.0 -> telefon fizikal dalam WiFi yang sama boleh akses
